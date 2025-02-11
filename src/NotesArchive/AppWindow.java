@@ -171,7 +171,18 @@ public class AppWindow extends JFrame {
                 }
 
                 Settings.frButton.addActionListener(_ -> {
-                   //CREATE POPUP ASKING FOR CONFIRMATION
+                   new ResetPopup();
+                   ResetPopup.yes.addActionListener(_ -> {
+                       try {
+                           notes.factoryReset();
+                       } catch (IOException e) {
+                           throw new RuntimeException(e);
+                       }
+                       ResetPopup.frame.dispose();
+                   });
+                   ResetPopup.no.addActionListener(_ -> {
+                       ResetPopup.frame.dispose();
+                   });
                 });
 
                 Settings.frame.dispose();

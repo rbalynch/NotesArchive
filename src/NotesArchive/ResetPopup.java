@@ -16,10 +16,8 @@ public class ResetPopup {
 
     public static void addComponentsToFrame(Container pane) {
         text = new JPanel(new FlowLayout());
-        warning = new JLabel("This will delete the entire index. Any files indexed will not be affected.");
-        cont = new JLabel("Continue?");
+        warning = new JLabel("This will delete the entire index. Any files indexed will not be affected. Continue?");
         text.add(warning, BorderLayout.CENTER);
-        text.add(cont, BorderLayout.SOUTH);
 
         yes = new JButton("Confirm");
         no = new JButton("Cancel");
