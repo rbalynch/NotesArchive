@@ -101,8 +101,8 @@ public class AppWindow extends JFrame {
             try {
                 notes.iw.close();
                 ArrayList<Document> list = notes.search(s, dropdown.getSelectedIndex());
-                Results r = new Results(list);
-                r.next.addActionListener(_ -> {
+                new Results(list);
+                Results.next.addActionListener(_ -> {
 
                 });
             }
@@ -121,28 +121,28 @@ public class AppWindow extends JFrame {
                     return;
                 }
                 for (File f : files) {
-                    String directory = "C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons\\" + notes.getFileWithoutExtension(f) + ".json";
+                    String directory = "C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons\\" + NotesArchive.getFileWithoutExtension(f) + ".json";
                     if (new File(directory).isFile()) {
                         Object o = new JSONParser().parse(new FileReader(directory));
                         JSONObject jsonObject = (JSONObject) o;
                         String dir = (String) jsonObject.get("directory");
 
-                        ReplacePopup rp = new ReplacePopup();
-                        rp.confirm.addActionListener(_ -> {
+                        new ReplacePopup();
+                        ReplacePopup.confirm.addActionListener(_ -> {
                             try {
                                 notes.iw.deleteDocuments(new Term("directory", dir));
-                                notes.createJSON(f);
+                                NotesArchive.createJSON(f);
                                 notes.addDoc(notes.iw, directory);
                             } catch (IOException | org.apache.lucene.queryparser.classic.ParseException |
                                      ParseException ex) {
                                 throw new RuntimeException(ex);
                             }
-                            rp.frame.dispose();
+                            ReplacePopup.frame.dispose();
                         });
-                        rp.cancel.addActionListener(_ -> rp.frame.dispose());
+                        ReplacePopup.cancel.addActionListener(_ -> ReplacePopup.frame.dispose());
                     }
                     else {
-                        notes.createJSON(f);
+                        NotesArchive.createJSON(f);
                         notes.addDoc(notes.iw, directory);
                     }
                 }
