@@ -78,6 +78,9 @@ public class NotesArchive {
 
         //Writes the json object to .json file
         String dir = "C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons\\" + getFileWithoutExtension(f) + ".json";
+        if (new File(dir).exists()) {
+            new File(dir).delete();
+        }
         FileWriter writer = new FileWriter(dir);
         writer.write(obj.toString());
         writer.close();
@@ -118,7 +121,7 @@ public class NotesArchive {
             throw new RuntimeException(e);
         }
         return directory;
-    }//Gets directory from .json file
+    }//Gets the directory the .json file is pointing to (NOT the .json file's directory)
     public static boolean isBlank(File file) throws IOException {
         BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
         return attr.size() <= 0;
@@ -239,6 +242,22 @@ public class NotesArchive {
             }
         }
     } //Refreshes all .json files in jsons folder and fixes any issues
+    public void refreshIndex() throws IOException, org.json.simple.parser.ParseException, ParseException {
+        File folder = new File("C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons");
+        File[] list = folder.listFiles();
+
+        if (list != null) {
+            for (File json : list) {
+                String jsonText = getJSONText(json);
+                String fileText = getJSONText(new File(getJSONDirectory(json)));
+                if (jsonText.compareTo(fileText) != 0) {
+                    createJSON(new File(getJSONDirectory(json)));
+                    iw.deleteDocuments(new Term("directory", getJSONDirectory(json)));
+                    addDoc(iw, json.getAbsolutePath());
+                }
+            }
+        }
+    }
     public void cleanJSONFolder() throws IOException {
         File file = new File("C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons"); //.json files directory
         File[] list = file.listFiles();
@@ -251,4 +270,13 @@ public class NotesArchive {
             }
         }
     } //Removes all blank .json files
+    public void factoryReset() throws IOException {
+        File[] files = new File("C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons").listFiles();
+        assert files != null;
+        for (File f : files) {
+            f.delete();
+        }
+        iw.deleteAll();
+        iw.commit();
+    }
 }
