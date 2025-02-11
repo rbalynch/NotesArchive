@@ -133,11 +133,8 @@ public class AppWindow extends JFrame {
                                 notes.iw.deleteDocuments(new Term("directory", dir));
                                 notes.createJSON(f);
                                 notes.addDoc(notes.iw, directory);
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            } catch (ParseException ex) {
-                                throw new RuntimeException(ex);
-                            } catch (org.apache.lucene.queryparser.classic.ParseException ex) {
+                            } catch (IOException | org.apache.lucene.queryparser.classic.ParseException |
+                                     ParseException ex) {
                                 throw new RuntimeException(ex);
                             }
                             rp.frame.dispose();

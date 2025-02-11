@@ -55,10 +55,10 @@ public class NotesArchive {
         JSONObject obj = new JSONObject(); //Creates new JSON object
 
         //Grabs text from text file
-        String s = "";
+        StringBuilder s = new StringBuilder();
         Scanner sc = new Scanner(f);
         while (sc.hasNextLine()) {
-            s += sc.nextLine() + " ";
+            s.append(sc.nextLine()).append(" ");
         }
 
         //Grabs necessary timestamps using BasicFileAttributes
@@ -74,7 +74,7 @@ public class NotesArchive {
         obj.put("lastEdited", lastEdited);
         obj.put("lastInd", calendar.getTimeInMillis());
         obj.put("fileSize", fileSize);
-        obj.put("fileText", s);
+        obj.put("fileText", s.toString());
 
         //Writes the json object to .json file
         String dir = "C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons\\" + getFileWithoutExtension(f) + ".json";
@@ -86,12 +86,12 @@ public class NotesArchive {
         return file.getName().substring(0, file.getName().indexOf(FilenameUtils.getExtension(file.getName())) - 1);
     } //Gets the file name without the extension
     public static String getFileText(File file) throws FileNotFoundException {
-        String s = "";
+        StringBuilder s = new StringBuilder();
         Scanner sc = new Scanner(file);
         while (sc.hasNextLine()) {
-            s += sc.nextLine() + " ";
+            s.append(sc.nextLine()).append(" ");
         }
-        return s;
+        return s.toString();
     } //Gets text from .txt file
     public static String getJSONText(File master) {
         JSONParser parser = new JSONParser();
@@ -145,9 +145,7 @@ public class NotesArchive {
 
         ScoreDoc[] hits = docs.scoreDocs;
         ArrayList<Document> list = new ArrayList<>();
-        int i = 0;
         for (ScoreDoc sd : hits) {
-            i++;
             int hitId = sd.doc;
             Document d = storedFields.document(hitId);
             list.add(d);

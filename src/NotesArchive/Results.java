@@ -23,8 +23,6 @@ import java.awt.Font;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -42,14 +40,11 @@ public class Results extends JDialog{
 
     public Results(ArrayList<Document> s) {
         hits = s;
-        invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    createGUI();
-                } catch (IOException | ParseException e) {
-                    throw new RuntimeException(e);
-                }
+        invokeLater(() -> {
+            try {
+                createGUI();
+            } catch (IOException | ParseException e) {
+                throw new RuntimeException(e);
             }
         });
     }
@@ -105,38 +100,29 @@ public class Results extends JDialog{
                             Desktop.getDesktop().open(new File(directory));
                         }
                         catch (IOException i) {
-                            i.printStackTrace();
+                            throw new RuntimeException();
                         }
                     }
                     else if (SwingUtilities.isRightMouseButton(e)) {
-                        m1.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                try {
-                                    Desktop.getDesktop().open(new File(directory));
-                                } catch (IOException ex) {
-                                    throw new RuntimeException(ex);
-                                }
-                                menu.setVisible(false);
+                        m1.addActionListener(_ -> {
+                            try {
+                                Desktop.getDesktop().open(new File(directory));
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
                             }
+                            menu.setVisible(false);
                         }); //Open file action
-                        m2.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                try {
-                                    FileInfoPopup info = new FileInfoPopup(d);
-                                    info.createGUI();
-                                } catch (IOException | ParseException ex) {
-                                    throw new RuntimeException(ex);
-                                }
-                                menu.setVisible(false);
+                        m2.addActionListener(_ -> {
+                            try {
+                                FileInfoPopup info = new FileInfoPopup(d);
+                                info.createGUI();
+                            } catch (IOException | ParseException ex) {
+                                throw new RuntimeException(ex);
                             }
+                            menu.setVisible(false);
                         }); //File details menu action
-                        m3.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                //CREATE A COPY OF THE NEW FILE AND AUTOMATICALLY INDEX
-                            }
+                        m3.addActionListener(_ -> {
+                            //CREATE A COPY OF THE NEW FILE AND AUTOMATICALLY INDEX
                         }); //Create new copy action
 
                         PointerInfo a = MouseInfo.getPointerInfo(); //Gets location of mouse cursor
