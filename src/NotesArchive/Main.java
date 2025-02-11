@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParseException, org.apache.lucene.queryparser.classic.ParseException {
-        AppWindow notes = new AppWindow("Files");
+        new AppWindow("Files");
     }
 }

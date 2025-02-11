@@ -21,10 +21,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -41,7 +38,6 @@ public class AppWindow extends JFrame {
     static JComboBox dropdown;
     static JButton search, addToIndex, settings;
     static FlowLayout layout;
-    static GridLayout gridLayout;
     static JFileChooser fc;
     static JPanel comps, searchButtons, oButton, allButtons;
     static JLabel label;
@@ -58,14 +54,11 @@ public class AppWindow extends JFrame {
     public AppWindow(String s) throws IOException, ParseException, org.apache.lucene.queryparser.classic.ParseException {
         window = s;
         notes.refreshJSONS();
-        invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    createGUI();
-                } catch (IOException | ParseException e) {
-                    throw new RuntimeException(e);
-                }
+        invokeLater(() -> {
+            try {
+                createGUI();
+            } catch (IOException | ParseException e) {
+                throw new RuntimeException(e);
             }
         });
     }
@@ -103,86 +96,64 @@ public class AppWindow extends JFrame {
 
         comps.setLayout(layout);//Sets layout for components
 
-        search.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String s = text.getText();
-                try {
-                    notes.iw.close();
-                    ArrayList<Document> list = notes.search(s, dropdown.getSelectedIndex());
-                    Results r = new Results(list);
-                    r.next.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
+        search.addActionListener(_ -> {
+            String s = text.getText();
+            try {
+                notes.iw.close();
+                ArrayList<Document> list = notes.search(s, dropdown.getSelectedIndex());
+                Results r = new Results(list);
+                r.next.addActionListener(_ -> {
 
-                        }
-                    });
-                }
-                catch (IOException | org.apache.lucene.queryparser.classic.ParseException i) {
-                    throw new RuntimeException(i);
-                }
+                });
+            }
+            catch (IOException | org.apache.lucene.queryparser.classic.ParseException i) {
+                throw new RuntimeException(i);
             }
         }); //SEARCH ACTION
-        addToIndex.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    File[] files;
-                    int r = fc.showSaveDialog(null);
-                    if (r == JFileChooser.APPROVE_OPTION) {
-                        files = fc.getSelectedFiles();
+        addToIndex.addActionListener(_ -> {
+            try {
+                File[] files;
+                int r = fc.showSaveDialog(null);
+                if (r == JFileChooser.APPROVE_OPTION) {
+                    files = fc.getSelectedFiles();
+                }
+                else {
+                    return;
+                }
+                for (File f : files) {
+                    String directory = "C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons\\" + notes.getFileWithoutExtension(f) + ".json";
+                    if (new File(directory).isFile()) {
+                        Object o = new JSONParser().parse(new FileReader(directory));
+                        JSONObject jsonObject = (JSONObject) o;
+                        String dir = (String) jsonObject.get("directory");
+
+                        ReplacePopup rp = new ReplacePopup();
+                        rp.confirm.addActionListener(_ -> {
+                            try {
+                                notes.iw.deleteDocuments(new Term("directory", dir));
+                                notes.createJSON(f);
+                                notes.addDoc(notes.iw, directory);
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (ParseException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (org.apache.lucene.queryparser.classic.ParseException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                            rp.frame.dispose();
+                        });
+                        rp.cancel.addActionListener(_ -> rp.frame.dispose());
                     }
                     else {
-                        return;
-                    }
-                    for (File f : files) {
-                        String directory = "C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons\\" + notes.getFileWithoutExtension(f) + ".json";
-                        if (new File(directory).isFile()) {
-                            Object o = new JSONParser().parse(new FileReader(directory));
-                            JSONObject jsonObject = (JSONObject) o;
-                            String dir = (String) jsonObject.get("directory");
-
-                            ReplacePopup rp = new ReplacePopup();
-                            rp.confirm.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    try {
-                                        notes.iw.deleteDocuments(new Term("directory", dir));
-                                        notes.createJSON(f);
-                                        notes.addDoc(notes.iw, directory);
-                                    } catch (IOException ex) {
-                                        throw new RuntimeException(ex);
-                                    } catch (ParseException ex) {
-                                        throw new RuntimeException(ex);
-                                    } catch (org.apache.lucene.queryparser.classic.ParseException ex) {
-                                        throw new RuntimeException(ex);
-                                    }
-                                    rp.frame.dispose();
-                                }
-                            });
-                            rp.cancel.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    rp.frame.dispose();
-                                }
-                            });
-                        }
-                        else {
-                            notes.createJSON(f);
-                            notes.addDoc(notes.iw, directory);
-                        }
+                        notes.createJSON(f);
+                        notes.addDoc(notes.iw, directory);
                     }
                 }
-                catch (IOException i) {
-                    i.printStackTrace();
-                }
-                catch (org.json.simple.parser.ParseException ex) {
-                    throw new RuntimeException(ex);
-                } catch (org.apache.lucene.queryparser.classic.ParseException ex) {
-                    throw new RuntimeException(ex);
-                }
-
             }
+            catch (IOException | ParseException | org.apache.lucene.queryparser.classic.ParseException ex) {
+                throw new RuntimeException(ex);
+            }
+
         }); //INDEX ACTION
 
         //COMPONENT ADDS
