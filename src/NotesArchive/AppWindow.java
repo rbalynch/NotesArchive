@@ -5,6 +5,7 @@ import org.apache.lucene.index.Term;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.quartz.SchedulerException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -36,7 +37,7 @@ public class AppWindow extends JFrame {
     static NotesArchive notes;
     static JTextField text;
     static JComboBox dropdown;
-    static JButton search, addToIndex, settings;
+    static JButton search, addToIndex, settingsButton;
     static FlowLayout layout;
     static JFileChooser fc;
     static JPanel comps, searchButtons, oButton, allButtons;
@@ -84,11 +85,11 @@ public class AppWindow extends JFrame {
         Image img = icon.getImage();
         img = img.getScaledInstance(15, 15, java.awt.Image.SCALE_SMOOTH);
         icon = new ImageIcon(img);
-        settings = new JButton(icon);
+        settingsButton = new JButton(icon);
 
         searchButtons.setLayout(new FlowLayout(FlowLayout.LEADING));
         oButton.setLayout(new FlowLayout(FlowLayout.TRAILING));
-        oButton.add(settings);
+        oButton.add(settingsButton);
 
         search.setDefaultCapable(true);
 
@@ -102,7 +103,7 @@ public class AppWindow extends JFrame {
                 notes.iw.close();
                 ArrayList<Document> list = notes.search(s, dropdown.getSelectedIndex());
                 new Results(list);
-                Results.next.addActionListener(_ -> {
+                 Results.next.addActionListener(_ -> {
 
                 });
             }
@@ -152,6 +153,33 @@ public class AppWindow extends JFrame {
             }
 
         }); //INDEX ACTION
+        settingsButton.addActionListener(_ -> {
+            Settings settings = new Settings();
+            Settings.confirm.addActionListener(_ -> {
+                try {
+                    IndexJob job = switch (Settings.auDropdown.getSelectedIndex()) {
+                        case 1 -> new IndexJob(notes, 1800);
+                        case 2 -> new IndexJob(notes, 3600);
+                        case 3 -> new IndexJob(notes, 7200);
+                        case 4 -> new IndexJob(notes, 21600);
+                        case 5 -> new IndexJob(notes, 43200);
+                        case 6 -> new IndexJob(notes, 86400);
+                        default -> null;
+                    };
+                } catch (SchedulerException e) {
+                    throw new RuntimeException(e);
+                }
+
+                Settings.frButton.addActionListener(_ -> {
+                   //CREATE POPUP ASKING FOR CONFIRMATION
+                });
+
+                Settings.frame.dispose();
+            }); //CONFIRM SETTINGS ACTION
+            Settings.cancel.addActionListener(_ -> {
+                Settings.frame.dispose();
+            }); //CANCEL ACTION
+        }); //SETTINGS ACTION
 
         //COMPONENT ADDS
         comps.add(label);
