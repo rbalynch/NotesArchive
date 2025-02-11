@@ -95,7 +95,7 @@ public class NotesArchive {
     } //Gets text from .txt file
     public static String getJSONText(File master) {
         JSONParser parser = new JSONParser();
-        String fileText = "";
+        String fileText;
         try {
             Object obj = parser.parse(new FileReader(master));
             JSONObject jsonObject = (JSONObject) obj;
