@@ -1,5 +1,10 @@
-package NotesArchive;
+/**
+ * This is a utility dialog for the file's information.
+ * It will only display necessary information for the user
+ * to have, and not every attribute on the .json file.
+ */
 
+package NotesArchive;
 import org.apache.lucene.document.Document;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -21,7 +26,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 
 public class FileInfoPopup extends JDialog {
-    static JLabel lastInd, lastEdited, fileMade, fileSize, directory;
+    static JLabel lastEdited, fileMade, fileSize, directory;
     static Path file;
     static BasicFileAttributes attr;
     static Document doc;
@@ -37,20 +42,24 @@ public class FileInfoPopup extends JDialog {
     public static String convertToUTC(long l) {
         Date date = new Date(l);
         return date.toString();
-    }
+    } //Converts timestamp in milliseconds to UTC for display
 
     public static void addComponentsToFrame(Container pane) throws IOException, ParseException {
+        //Parses the .json file from the passed document
         Object o = new JSONParser().parse(new FileReader(doc.get("jsonDir")));
         JSONObject jsonObject = (JSONObject) o;
 
-        lastInd = new JLabel("Last indexed: " + convertToUTC((long) jsonObject.get("lastInd")));
+        //Creates sub-panel
+        comps = new JPanel();
+
+        //Gathers all necessary information and puts them into labels for display
         lastEdited = new JLabel("Last edited: " + convertToUTC((long) jsonObject.get("lastEdited")));
         fileSize = new JLabel("File size: " + jsonObject.get("fileSize"));
         fileMade = new JLabel("File created: " + convertToUTC((long) jsonObject.get("fileMade")));
         directory = new JLabel("File path: " + jsonObject.get("directory"));
-        comps = new JPanel();
-        JLabel[] labels = {lastInd, lastEdited, fileMade, fileSize, directory};
+        JLabel[] labels = {lastEdited, fileMade, fileSize, directory};
         comps.setLayout(new BoxLayout(comps, BoxLayout.PAGE_AXIS));
+
         TITLE.setFont(new Font("Courier New", Font.BOLD, 16));
         for (JLabel j : labels) {
             j.setFont(new Font("Courier New", Font.BOLD, 16));

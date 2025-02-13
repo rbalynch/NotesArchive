@@ -1,3 +1,9 @@
+/**
+ * @author  Riley Lynch
+ * @version 0.8.3-alpha
+ * @since   2/13/2025
+ */
+
 package NotesArchive;
 import org.json.simple.parser.ParseException;
 import java.io.IOException;

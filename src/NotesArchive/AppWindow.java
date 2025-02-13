@@ -1,3 +1,12 @@
+/**
+ * This class is the outer-most layer in this giant mess of a project.
+ * This is what gets called to open the index. It creates the user-interface
+ * and, upon request, creates new dialogs (settings, search results, etc.).
+ * It also creates the action listeners for the settings menu to give it
+ * access to the index, which is especially important for factory resets.
+ */
+
+
 package NotesArchive;
 
 import org.apache.lucene.document.Document;
@@ -38,7 +47,6 @@ public class AppWindow extends JFrame {
     static JTextField text;
     static JComboBox dropdown;
     static JButton search, addToIndex, settingsButton;
-    static FlowLayout layout;
     static JFileChooser fc;
     static JPanel comps, searchButtons, oButton, allButtons;
     static JLabel label;
@@ -66,37 +74,36 @@ public class AppWindow extends JFrame {
 
     //GUI BUILDING
     public static void addComponentsToFrame(Container pane) {
-        //MAKE COMPONENTS
+        //Sub-panels
         comps = new JPanel();
-        layout = new FlowLayout();
+        allButtons = new JPanel();
         searchButtons = new JPanel();
         oButton = new JPanel();
-        allButtons = new JPanel();
+
+        //UI Elements
         search = new JButton("Search");
         addToIndex = new JButton("Index");
         text = new JTextField(20);
         fc = new JFileChooser();
         label = new JLabel("Search by: ");
 
+        //Search by dropdown
         String[] arr = {"File Text", "File Name", "Serial"};
         dropdown = new JComboBox(arr);
 
+        //Creates new settings button and gives it a gear icon
         ImageIcon icon = new ImageIcon("C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\images\\Windows_Settings_app_icon.png");
         Image img = icon.getImage();
         img = img.getScaledInstance(15, 15, java.awt.Image.SCALE_SMOOTH);
         icon = new ImageIcon(img);
         settingsButton = new JButton(icon);
 
+        //Assigns layout managers
         searchButtons.setLayout(new FlowLayout(FlowLayout.LEADING));
         oButton.setLayout(new FlowLayout(FlowLayout.TRAILING));
-        oButton.add(settingsButton);
+        comps.setLayout(new FlowLayout());
 
-        search.setDefaultCapable(true);
-
-        fc.setMultiSelectionEnabled(true);
-
-        comps.setLayout(layout);//Sets layout for components
-
+        //Assigns action listeners
         search.addActionListener(_ -> {
             String s = text.getText();
             try {
@@ -121,6 +128,7 @@ public class AppWindow extends JFrame {
                 else {
                     return;
                 }
+                boolean success = true;
                 for (File f : files) {
                     String directory = "C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons\\" + NotesArchive.getFileWithoutExtension(f) + ".json";
                     if (new File(directory).isFile()) {
@@ -145,7 +153,13 @@ public class AppWindow extends JFrame {
                     else {
                         NotesArchive.createJSON(f);
                         notes.addDoc(notes.iw, directory);
+                        if (!new File(directory).isFile()) {
+                            success = false;
+                        }
                     }
+                }
+                if (success) {
+                    succuessPopup();
                 }
             }
             catch (IOException | ParseException | org.apache.lucene.queryparser.classic.ParseException ex) {
@@ -154,7 +168,23 @@ public class AppWindow extends JFrame {
 
         }); //INDEX ACTION
         settingsButton.addActionListener(_ -> {
-            Settings settings = new Settings();
+            new Settings();
+            Settings.frButton.addActionListener(_ -> {
+                new ResetPopup();
+                ResetPopup.yes.addActionListener(_ -> {
+                    try {
+
+                        notes.factoryReset();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    ResetPopup.frame.dispose();
+                });
+                ResetPopup.no.addActionListener(_ -> {
+                    ResetPopup.frame.dispose();
+                });
+            });
             Settings.confirm.addActionListener(_ -> {
                 try {
                     IndexJob job = switch (Settings.auDropdown.getSelectedIndex()) {
@@ -170,21 +200,6 @@ public class AppWindow extends JFrame {
                     throw new RuntimeException(e);
                 }
 
-                Settings.frButton.addActionListener(_ -> {
-                   new ResetPopup();
-                   ResetPopup.yes.addActionListener(_ -> {
-                       try {
-                           notes.factoryReset();
-                       } catch (IOException e) {
-                           throw new RuntimeException(e);
-                       }
-                       ResetPopup.frame.dispose();
-                   });
-                   ResetPopup.no.addActionListener(_ -> {
-                       ResetPopup.frame.dispose();
-                   });
-                });
-
                 Settings.frame.dispose();
             }); //CONFIRM SETTINGS ACTION
             Settings.cancel.addActionListener(_ -> {
@@ -192,20 +207,41 @@ public class AppWindow extends JFrame {
             }); //CANCEL ACTION
         }); //SETTINGS ACTION
 
-        //COMPONENT ADDS
+        //Adds components to appropriate panels
         comps.add(label);
         comps.add(dropdown);
         comps.add(text);
         searchButtons.add(search);
         searchButtons.add(addToIndex);
+        oButton.add(settingsButton);
 
+        //Sets configuration for file chooser and search button
         fc.setDialogType(JFileChooser.APPROVE_OPTION); //File chooser filter and config
         FileFilter filter = new FileNameExtensionFilter(".txt Files", "txt");
         fc.setFileFilter(filter);
+        fc.setMultiSelectionEnabled(true); //Allows for multiple files to be selected
+        search.setDefaultCapable(true); //Allows search button to be used as default button (activated by "Enter" key)
 
+        //Adds and aligns panels on frame
         pane.add(comps, BorderLayout.PAGE_START);
         pane.add(searchButtons, BorderLayout.LINE_START);
         pane.add(oButton, BorderLayout.AFTER_LINE_ENDS);
+    }
+    public static void succuessPopup() {
+        JLabel label = new JLabel("Success!");
+        JButton button = new JButton("Close");
+        JFrame frame = new JFrame();
+        JPanel comps = new JPanel(new FlowLayout());
+        button.addActionListener(_ -> {
+            frame.dispose();
+        });
+
+        comps.add(label, BorderLayout.NORTH);
+        comps.add(button, BorderLayout.SOUTH);
+        frame.getContentPane().add(comps);
+        frame.pack();
+        frame.setVisible(true);
+        frame.setLocationRelativeTo(null);
     }
     public static void createGUI() throws IOException, ParseException {
         JFrame frame = new JFrame(window);
@@ -219,7 +255,7 @@ public class AppWindow extends JFrame {
         frame.setVisible(true);
         frame.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e) {
+            public void windowClosed(WindowEvent e) {
                 try {
                     notes.cleanJSONFolder();
                 } catch (IOException ex) {
@@ -227,5 +263,5 @@ public class AppWindow extends JFrame {
                 }
             }
         });
-    }
+    } //Creates app GUI
 }

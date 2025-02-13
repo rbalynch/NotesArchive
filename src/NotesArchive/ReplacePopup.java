@@ -1,3 +1,10 @@
+/**
+ * This dialog will display when the user selects a file
+ * that was already foudn in the index. It will ask the user
+ * if they mean to re-index the file, and takes action
+ * based on the response selected.
+ */
+
 package NotesArchive;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -20,19 +27,23 @@ public class ReplacePopup extends JFrame {
         createGUI();
     }
     public static void addComponentsToFrame(Container pane) {
+        //Sub-panels and layout
         comps = new JPanel();
         buttons = new JPanel();
+        layout = new FlowLayout();
+
+        //UI Elements
         confirm = new JButton("Re-Index");
         cancel = new JButton("Cancel");
-        layout = new FlowLayout();
         label = new JLabel("This file has already been indexed. Do you want to re-index it?");
-        comps = new JPanel();
 
+        //Add components
         comps.setLayout(layout);
         buttons.add(confirm);
         buttons.add(cancel);
         comps.add(label);
 
+        //Add sub-panels to frame
         pane.add(comps, BorderLayout.CENTER);
         pane.add(buttons, BorderLayout.SOUTH);
     }

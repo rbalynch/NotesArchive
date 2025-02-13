@@ -1,3 +1,20 @@
+/**
+ * This is where a majority of the heavy lifting is done.
+ * The NotesArchive class creates a new index if one did not
+ * exist before and opens it for reading, writing, and searching.
+ *
+ * The archive works by taking a text file and gathers necessary data from it.
+ * It then creates a .json file and stores it for global use.
+ * The .json file contains...
+ *  - Text body
+ *  - File name
+ *  - Date/time made
+ *  - Size of file
+ *  - Date/time of last index
+ *  - Date/time last edited
+ *  - Directory
+ */
+
 package NotesArchive;
 
 import org.apache.commons.io.FilenameUtils;
@@ -46,7 +63,7 @@ public class NotesArchive {
 
     //INDEXER CONSTRUCTOR
     public NotesArchive() throws IOException, org.json.simple.parser.ParseException {
-        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+
     }
 
     //HELPER METHODS
@@ -241,6 +258,7 @@ public class NotesArchive {
                 }
             }
         }
+        cleanJSONFolder(); //Remove all consequential blank .jsons
     } //Refreshes all .json files in jsons folder and fixes any issues
     public void refreshIndex() throws IOException, org.json.simple.parser.ParseException, ParseException {
         File folder = new File("C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons");
@@ -248,9 +266,11 @@ public class NotesArchive {
 
         if (list != null) {
             for (File json : list) {
+                //Compares the text in the .json with the text in the file it's pointing to
                 String jsonText = getJSONText(json);
                 String fileText = getJSONText(new File(getJSONDirectory(json)));
                 if (jsonText.compareTo(fileText) != 0) {
+                    //Create a new .json file, delete the old version and re-index the new one
                     createJSON(new File(getJSONDirectory(json)));
                     iw.deleteDocuments(new Term("directory", getJSONDirectory(json)));
                     addDoc(iw, json.getAbsolutePath());
@@ -273,10 +293,17 @@ public class NotesArchive {
     public void factoryReset() throws IOException {
         File[] files = new File("C:\\Users\\rbaly\\IdeaProjects\\NotesArchive_3\\jsons").listFiles();
         assert files != null;
-        for (File f : files) {
-            f.delete();
-        }
+
+        //Wipe the index
         iw.deleteAll();
         iw.commit();
+
+        //Delete all text in every .json
+        for (File json : files) {
+            FileWriter writer = new FileWriter(json);
+            writer.write("");
+            writer.close();
+        }
+        cleanJSONFolder();
     }
 }

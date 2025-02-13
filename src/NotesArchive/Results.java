@@ -1,5 +1,10 @@
-package NotesArchive;
+/**
+ * This dialog pulls up the results from the search query,
+ * creating a clickable link that directs to the file
+ * for each result.
+ */
 
+package NotesArchive;
 import org.apache.lucene.document.Document;
 import org.json.simple.parser.ParseException;
 
